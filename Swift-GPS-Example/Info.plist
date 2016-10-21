@@ -4,6 +4,10 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
+	<key>NSLocationWhenInUsageDescription</key>
+	<string>安安，給我權限好嗎？</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>安安，給我權限好嗎？</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
