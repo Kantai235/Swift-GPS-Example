@@ -19,9 +19,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     // 座標管理元件
     var _locationManager : CLLocationManager!
     
-    // NSLocationWhenInUseUsageDescription
-    // 說明為何要取得使用 App 期間授權的文字
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
