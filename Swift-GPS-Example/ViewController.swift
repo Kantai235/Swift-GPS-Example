@@ -10,6 +10,7 @@ import UIKit
 import MapKit
 import CoreLocation
 
+// 委任對象 CLLocationManager().delegate 需要加入 CLLocationManagerDelegate 這個協定
 class ViewController: UIViewController, CLLocationManagerDelegate {
 
     // 地圖元件
@@ -24,13 +25,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-    
+        
         // 生成 CLLocationManager 這物件
         _locationManager = CLLocationManager()
-        // 指定其代理 delegate
+        // 指定其代理 delegate 委任對象
         _locationManager.delegate = self
         
-        /*  設定定位精準度 locationManager.desiredAccuracy
+        /*  設置自身定位精準度 _locationManager.desiredAccuracy
+         *  設置移動距離精準度 _locationManager.distanceFilter
          *      kCLLocationAccuracyBestForNavigation：精確度最高，適用於導航的定位。
          *      kCLLocationAccuracyBest：精確度高。
          *      kCLLocationAccuracyNearestTenMeters：精確度 10 公尺以內。
@@ -39,6 +41,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
          *      kCLLocationAccuracyThreeKilometers：精確度 3 公里以內。
          */
         _locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        _locationManager.distanceFilter = kCLLocationAccuracyNearestTenMeters
         
         /* 如果要調用 requestAlwaysAuthorization() 這個方法
          * 你必須在 Info.plist 當中加入 NSLocationAlwaysUsageDescription 這個 Key&Value
@@ -69,22 +72,38 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         // Dispose of any resources that can be recreated.
     }
 
-    func locationManager(manager: CLLocationManager!, didUpdateLocations locations: [AnyObject]!) {
-        //取得目前的座標位置
-        let curLocation = locations[0] as! CLLocation
+    // 實作 CLLocationManagerDelegate 需要的委任方法
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        // 取得目前的座標位置
+        let _curLocation = locations[0]
+        
         // curLocation.coordinate.latitude 目前緯度
         // curLocation.coordinate.longitude 目前經度
-        let nowLocation = CLLocationCoordinate2D(latitude: curLocation.coordinate.latitude, longitude: curLocation.coordinate.longitude)
+        let _nowLocationCoordinate2D = CLLocationCoordinate2D(
+            latitude: _curLocation.coordinate.latitude,
+            longitude: _curLocation.coordinate.longitude
+        )
         
-        // 將 map 中心點定在目前所在的位置
-        // span 是地圖 zoom in, zoom out 的級距
-        let _span:MKCoordinateSpan = MKCoordinateSpan(latitudeDelta: 0.0005, longitudeDelta: 0.0005)
-        self._mapView.setRegion(MKCoordinateRegion(center: nowLocation, span: _span), animated: true)
+        // _span 是地圖 zoom in, zoom out 的級距
+        let _coordinateSpan: MKCoordinateSpan = MKCoordinateSpan(
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005
+        )
         
-        print("latitude = \(curLocation.coordinate.latitude)")
-        print("longitude = \(curLocation.coordinate.longitude)")
+        // 將地圖中心點座標定位在目前所在的位置上
+        self._mapView.setRegion(
+            MKCoordinateRegion(
+                center: _nowLocationCoordinate2D,
+                span: _coordinateSpan
+            ),
+            animated: true
+        )
+        
+        NSLog("latitude = \(_curLocation.coordinate.latitude)")
+        NSLog("longitude = \(_curLocation.coordinate.longitude)")
     }
 
+    // 將經緯度轉成地址的方法
     private func reverseGeocodeLocation(_latitude: Double, _longitude: Double) -> Void {
         let geoCoder = CLGeocoder()
         let currentLocation = CLLocation(
@@ -98,20 +117,35 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                     // 這邊可以加入一些你的 Try Error 機制
                     return
                 }
-            // name         街道地址
-            // country      國家
-            // province     省
-            // locality     市
-            // sublocality  縣.區
-            // route        街道、路
-            // streetNumber 門牌號碼
-            // postalCode   郵遞區號
+                /*  name            街道地址
+                 *  country         國家
+                 *  province        省籍
+                 *  locality        城市
+                 *  sublocality     縣市、區
+                 *  route           街道、路名
+                 *  streetNumber    門牌號碼
+                 *  postalCode      郵遞區號
+                 */
                 if placemarks != nil && (placemarks?.count)! > 0{
                     let placemark = (placemarks?[0])! as CLPlacemark
                     //這邊拼湊轉回來的地址
                 }
             }
         )
+    }
+    
+    // 在地圖上新增一個大頭針的方法
+    private func addPointAnnotation(_latitude: CLLocationDegrees , _longitude: CLLocationDegrees) {
+        // 建構一個大頭針元件 MKPointAnnotation()
+        let _pointAnnotation: MKPointAnnotation = MKPointAnnotation();
+        // 定義大頭針的經緯度座標
+        _pointAnnotation.coordinate = CLLocationCoordinate2D(latitude: _latitude, longitude: _longitude);
+        // 定義大頭針顯示的標題
+        _pointAnnotation.title = "大頭針標題";
+        // 定義大頭針的內容訊息
+        _pointAnnotation.subtitle = "緯度：\(_latitude) 經度:\(_longitude)";
+        // 在地圖上新增大頭針座標
+        self._mapView.addAnnotation(_pointAnnotation);
     }
     
 }
